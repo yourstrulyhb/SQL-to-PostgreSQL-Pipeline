@@ -4,18 +4,20 @@ from sqlalchemy.engine import URL
 import pandas as pd
 import os
 
-pwd = os.environ['ETL_PGPASS']
+
 uid = os.environ['ETL_PGUID']
+pwd = os.environ['ETL_PGPASS']
 
 # SQL database details
 driver = "{SQL Server Native Client 11.0}"
-server = "localhost" # YATCH (?) 
+sql_server = 'YATCH\SQLEXPRESS' # YATCH (?) localhost (?)
+postgres_server = 'localhost'
 database = "AdventureWorksDW2019" 
-sql_server_name = 'YATCH\SQLEXPRESS'
+PORT=1433
 
 def extract():
    try:
-      connection_string = 'DRIVER=' + driver + ';SERVER=' + server + ';DATABASE=' + database + ';UID=' + uid + ';PWD=' + pwd
+      connection_string = 'DRIVER=' + driver + ';SERVER=' + sql_server + ';DATABASE=' + database + ';UID=' + uid + ';PWD=' + pwd
       connection_url = URL.create("mssql+pyodbc", query={"odbc_connect": connection_string})
       src_engine = create_engine(connection_url)
       src_conn = src_engine.connect()
@@ -37,7 +39,7 @@ def extract():
 def load(df, tbl):
     try:
         rows_imported = 0
-        engine = create_engine(f'postgresql://{uid}:{pwd}@{server}:5432/adventureworks') # engine = create_engine(f'postgresql://{uid}:{pwd}@{server}:5432/adventureworks')
+        engine = create_engine(f'postgresql://{uid}:{pwd}@{postgres_server}:5432/AdventureWorks') 
         print(f'Importing rows {rows_imported} to {rows_imported + len(df)}... for table {tbl}')
         # save df to postgres
         df.to_sql(f'stg_{tbl}', engine, if_exists='replace', index=False, chunksize=100000)
